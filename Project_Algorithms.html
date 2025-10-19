@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algorithm Explanation - 8-bit CPU Translator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background-color: #1a202c;
+            color: #e5e7eb;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #2d3748;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #63b3ed;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #a0aec0;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        @media (min-width: 992px) {
+            .content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        .card {
+            background-color: #2d3748;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #63b3ed;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 10px;
+        }
+        
+        .card-title i {
+            font-size: 1.3rem;
+        }
+        
+        .algorithm-step {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #4a5568;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            background: #63b3ed;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #90cdf4;
+        }
+        
+        .code-block {
+            background: #1a202c;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .register {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: #4a5568;
+            border-radius: 6px;
+        }
+        
+        .register-name {
+            font-weight: bold;
+            color: #90cdf4;
+        }
+        
+        .visualization {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .bus {
+            height: 4px;
+            background: linear-gradient(to right, #4299e1, #90cdf4);
+            border-radius: 2px;
+            margin: 10px 0;
+            position: relative;
+        }
+        
+        .bus-data {
+            position: absolute;
+            top: -30px;
+            width: 50px;
+            height: 25px;
+            background: #4299e1;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: white;
+            left: 0;
+            transition: left 1.5s ease-in-out;
+        }
+        
+        .memory-cell {
+            display: inline-block;
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            background: #4a5568;
+            border-radius: 6px;
+            text-align: center;
+            line-height: 1.4;
+            padding: 5px;
+        }
+        
+        .memory-address {
+            font-size: 0.7rem;
+            color: #a0aec0;
+        }
+        
+        .memory-content {
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .highlight {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .signal {
+            display: inline-block;
+            padding: 8px 15px;
+            background: #4a5568;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .signal.active {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .animation-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #3182ce;
+        }
+        
+        .progress-container {
+            height: 10px;
+            background: #4a5568;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #4299e1, #90cdf4);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microchip"></i> 8-bit CPU Translator Simulator</h1>
+            <p class="subtitle">Algorithm Explanation for Project Presentation</p>
+        </header>
+        
+        <div class="content">
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-code"></i> Core Translation Algorithm</h2>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Input Processing</h3>
+                    <p>The algorithm begins by taking the input text and breaking it down into individual characters.</p>
+                    <div class="code-block">
+// Pseudo-code for input processing<br>
+inputText = "Hello"<br>
+characters = ['H', 'e', 'l', 'l', 'o']<br>
+charCodes = [72, 101, 108, 108, 111] // ASCII values
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Memory Storage</h3>
+                    <p>Each character's ASCII value is stored in memory locations for processing.</p>
+                    <div class="code-block">
+// Memory allocation example<br>
+Memory[0x10] = 0x48 // 'H'<br>
+Memory[0x11] = 0x65 // 'e'<br>
+Memory[0x12] = 0x6C // 'l'<br>
+Memory[0x13] = 0x6C // 'l'<br>
+Memory[0x14] = 0x6F // 'o'
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Instruction Execution</h3>
+                    <p>The CPU follows a program that loads, translates, and stores each character.</p>
+                    <div class="code-block">
+// Program instructions<br>
+0x00: LOAD 0x10   // Load 'H' from memory<br>
+0x01: TRANSLATE   // Apply translation<br>
+0x02: STORE 0x18  // Store translated character<br>
+0x03: LOAD 0x11   // Load 'e' from memory<br>
+0x04: TRANSLATE   // Apply translation<br>
+0x05: STORE 0x19  // Store translated character<br>
+// ... continues for each character
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-project-diagram"></i> CPU Simulation Algorithm</h2>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Fetch Stage</h3>
+                    <p>The CPU retrieves the next instruction from memory.</p>
+                    <div class="visualization">
+                        <div class="register">
+                            <span class="register-name">PC (Program Counter):</span>
+                            <span>0x00</span>
+                        </div>
+                        <div class="bus">
+                            <div class="bus-data">0x00</div>
+                        </div>
+                        <div class="register">
+                            <span class="register-name">MAR (Memory Address Register):</span>
+                            <span>0x00</span>
+                        </div>
+                        <div class="register">
+                            <span class="register-name">MDR (Memory Data Register):</span>
+                            <span>0x01</span>
+                        </div>
+                        <div class="register">
+                            <span class="register-name">IR (Instruction Register):</span>
+                            <span>0x01</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Decode Stage</h3>
+                    <p>The Control Unit interprets the instruction and activates appropriate signals.</p>
+                    <div class="visualization">
+                        <div class="signal active">READ</div>
+                        <div class="signal">WRITE</div>
+                        <div class="signal active">FETCH</div>
+                        <div class="signal">EXECUTE</div>
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">3</div>
+                    <h3 class="step-title">Execute Stage</h3>
+                    <p>The CPU performs the operation specified by the instruction.</p>
+                    <div class="code-block">
+// Execution example for LOAD instruction<br>
+1. Read memory at address specified in next byte<br>
+2. Move data to Accumulator (AC) register<br>
+3. Increment Program Counter (PC) by 2
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">4</div>
+                    <h3 class="step-title">Memory Operations</h3>
+                    <p>Showing memory during translation process:</p>
+                    <div class="visualization">
+                        <div class="memory-cell">
+                            <div class="memory-address">0x10</div>
+                            <div class="memory-content">0x48</div>
+                        </div>
+                        <div class="memory-cell highlight">
+                            <div class="memory-address">0x11</div>
+                            <div class="memory-content">0x65</div>
+                        </div>
+                        <div class="memory-cell">
+                            <div class="memory-address">0x12</div>
+                            <div class="memory-content">0x6C</div>
+                        </div>
+                        <div class="memory-cell">
+                            <div class="memory-address">0x18</div>
+                            <div class="memory-content">0x49</div>
+                        </div>
+                        <div class="memory-cell">
+                            <div class="memory-address">0x19</div>
+                            <div class="memory-content">0x66</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-cogs"></i> Control Unit Algorithm</h2>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Instruction Cycle</h3>
+                    <p>The Control Unit manages the fetch-decode-execute cycle:</p>
+                    <div class="code-block">
+while (running) {
+  1. FETCH: Get next instruction from memory
+  2. DECODE: Determine what instruction does
+  3. EXECUTE: Perform the operation
+  4. Update PC to next instruction
+}
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Signal Management</h3>
+                    <p>The Control Unit activates specific signals for each operation:</p>
+                    <div class="code-block">
+if (opcode == LOAD) {
+  activate(READ_SIGNAL);
+  activate(MEM_TO_AC_SIGNAL);
+} else if (opcode == STORE) {
+  activate(WRITE_SIGNAL);
+  activate(AC_TO_MEM_SIGNAL);
+} else if (opcode == TRANSLATE) {
+  activate(ALU_OP_SIGNAL);
+}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-exchange-alt"></i> Translation Process</h2>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">1</div>
+                    <h3 class="step-title">Character Processing</h3>
+                    <p>Each character goes through the translation pipeline:</p>
+                    <div class="code-block">
+Input: "Hello" (5 characters)
+Step 1: Fetch 'H' from memory
+Step 2: Apply translation algorithm
+Step 3: Store translated 'H'
+Repeat for each character
+                    </div>
+                </div>
+                
+                <div class="algorithm-step">
+                    <div class="step-number">2</div>
+                    <h3 class="step-title">Simulation vs Real Translation</h3>
+                    <p>The simulator shows the process, then uses Google Translate API for actual translation:</p>
+                    <div class="code-block">
+// Simulation (for visualization)
+function simulateTranslation(charCode) {
+  return charCode + 1; // Simple transformation
+}
+
+// Real translation (after simulation)
+async function realTranslation(text, sourceLang, targetLang) {
+  const response = await fetchGoogleTranslateAPI(text, sourceLang, targetLang);
+  return response.translatedText;
+}
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: 75%"></div>
+                </div>
+                
+                <div class="animation-controls">
+                    <button onclick="startAnimation()"><i class="fas fa-play"></i> Start Simulation</button>
+                    <button onclick="pauseAnimation()"><i class="fas fa-pause"></i> Pause</button>
+                    <button onclick="resetAnimation()"><i class="fas fa-redo"></i> Reset</button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>8-bit CPU Translator Simulator - Algorithm Explanation for Project Presentation</p>
+        </footer>
+    </div>
+
+    <script>
+        // Simple animation for demonstration purposes
+        function startAnimation() {
+            const busData = document.querySelector('.bus-data');
+            busData.style.left = 'calc(100% - 50px)';
+            
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = '100%';
+            
+            const memoryCells = document.querySelectorAll('.memory-cell');
+            memoryCells.forEach((cell, index) => {
+                setTimeout(() => {
+                    cell.classList.add('highlight');
+                }, index * 300);
+            });
+        }
+        
+        function pauseAnimation() {
+            // In a real implementation, this would pause animations
+            alert('Animation paused');
+        }
+        
+        function resetAnimation() {
+            const busData = document.querySelector('.bus-data');
+            busData.style.left = '0';
+            
+            const progressBar = document.querySelector('.progress-bar');
+            progressBar.style.width = '0%';
+            
+            const memoryCells = document.querySelectorAll('.memory-cell');
+            memoryCells.forEach(cell => {
+                cell.classList.remove('highlight');
+            });
+        }
+    </script>
+</body>
+</html>

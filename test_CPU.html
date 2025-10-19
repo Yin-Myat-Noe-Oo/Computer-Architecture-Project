@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Premium CPU Architecture Diagram</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --accent: #e74c3c;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --info: #3498db;
+      --cpu-bg: #34495e;
+      --memory-bg: #7f8c8d;
+      --io-bg: #95a5a6;
+      --shadow: 0 10px 30px rgba(0,0,0,0.15);
+      --glow: 0 0 15px rgba(52, 152, 219, 0.5);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--dark);
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .header p {
+      font-size: 1.1rem;
+      color: #555;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+    }
+    
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(52, 152, 219, 0.4);
+    }
+    
+    .btn i {
+      font-size: 0.9rem;
+    }
+    
+    .diagram-container {
+      position: relative;
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .diagram {
+      position: relative;
+      width: 100%;
+      height: 650px;
+      background: #fff;
+      border: 1px solid #ddd;
+      box-sizing: border-box;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .box {
+      position: absolute;
+      border: 2px solid var(--dark);
+      background: #fff;
+      text-align: center;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      padding: 1em;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      z-index: 2;
+    }
+    
+    .box:hover {
+      transform: scale(1.03);
+      box-shadow: var(--glow);
+      z-index: 10;
+    }
+    
+    .box i {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: var(--secondary);
+    }
+    
+    .input {
+      width: 160px; 
+      height: 90px;
+      top: 280px; 
+      left: -190px;
+      background: linear-gradient(to bottom, var(--io-bg), #bdc3c7);
+      color: white;
+    }
+    
+    .output {
+      width: 160px; 
+      height: 90px;
+      top: 280px; 
+      right: -190px;
+      background: linear-gradient(to bottom, var(--io-bg), #bdc3c7);
+      color: white;
+    }
+    
+    .cpu {
+      position: absolute;
+      top: 40px; 
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px; 
+      height: 380px;
+      border: 3px solid var(--primary);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      background: linear-gradient(to bottom right, var(--cpu-bg), #2c3e50);
+      box-shadow: inset 0 4px 20px rgba(0,0,0,0.2);
+      color: white;
+      z-index: 1;
+    }
+    
+    .cpu h2 {
+      margin: 15px 0;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      color: white;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+    
+    .control, .alu {
+      width: 90%; 
+      height: 70px;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.1);
+      margin: 10px auto;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      font-size: 18px; 
+      font-weight: 600;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+    
+    .control:hover, .alu:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.02);
+    }
+    
+    .registers {
+      width: 90%;
+      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.1);
+      margin: 10px auto;
+      padding: 12px;
+      font-weight: bold;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+    }
+    
+    .registers h3 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    .regs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .reg {
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(52, 152, 219, 0.3);
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      color: white;
+      min-width: 60px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .reg:hover {
+      background: rgba(52, 152, 219, 0.5);
+      transform: translateY(-3px);
+    }
+    
+    .memory {
+      position: absolute;
+      bottom: 40px; 
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px; 
+      height: 100px;
+      border: 3px solid var(--primary);
+      font-weight: bold;
+      display: flex;
+      align-items: center; 
+      justify-content: center;
+      border-radius: 16px;
+      background: linear-gradient(to bottom right, var(--memory-bg), #636e72);
+      box-shadow: inset 0 4px 20px rgba(0,0,0,0.2);
+      color: white;
+      z-index: 1;
+    }
+    
+    .memory i {
+      margin-right: 15px;
+      font-size: 28px;
+    }
+    
+    .data-flow {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .flow-path {
+      stroke: var(--secondary);
+      stroke-width: 3;
+      stroke-dasharray: 10;
+      animation: flowAnimation 2s linear infinite;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+    
+    @keyframes flowAnimation {
+      to {
+        stroke-dashoffset: -20;
+      }
+    }
+    
+    .info-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 300px;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      z-index: 20;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .info-panel.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: all;
+    }
+    
+    .info-panel h3 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--light);
+    }
+    
+    .info-panel p {
+      line-height: 1.6;
+      color: #555;
+    }
+    
+    .info-panel .close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      color: #999;
+      font-size: 20px;
+    }
+    
+    .info-panel .close:hover {
+      color: var(--accent);
+    }
+    
+    .tooltip {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 100;
+    }
+    
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      color: #777;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 1200px) {
+      .diagram {
+        transform: scale(0.9);
+      }
+      
+      .input, .output {
+        transform: scale(0.8);
+      }
+      
+      .input {
+        left: -170px;
+      }
+      
+      .output {
+        right: -170px;
+      }
+    }
+    
+    @media (max-width: 900px) {
+      .diagram {
+        transform: scale(0.8);
+      }
+      
+      .input {
+        left: -150px;
+      }
+      
+      .output {
+        right: -150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Premium CPU Architecture Diagram</h1>
+    <p>Explore the components of a Central Processing Unit and how they interact with memory and I/O devices. Click on any component to learn more.</p>
+  </div>
+  
+  <div class="controls">
+    <button class="btn" id="animateBtn"><i class="fas fa-play"></i> Animate Data Flow</button>
+    <button class="btn" id="resetBtn"><i class="fas fa-redo"></i> Reset Animation</button>
+    <button class="btn" id="infoBtn"><i class="fas fa-info-circle"></i> Show Component Info</button>
+  </div>
+  
+  <div class="diagram-container">
+    <div class="diagram">
+      <div class="box input" data-component="input">
+        <i class="fas fa-keyboard"></i>
+        Input Device
+      </div>
+      <div class="box output" data-component="output">
+        <i class="fas fa-display"></i>
+        Output Device
+      </div>
+
+      <div class="cpu">
+        <h2>Central Processing Unit</h2>
+        <div class="control" data-component="control">Control Unit</div>
+        <div class="alu" data-component="alu">Arithmetic / Logic Unit</div>
+        <div class="registers">
+          <h3>Registers</h3>
+          <div class="regs">
+            <div class="reg" data-component="pc">PC</div>
+            <div class="reg" data-component="ac">AC</div>
+            <div class="reg" data-component="mar">MAR</div>
+            <div class="reg" data-component="mdr">MDR</div>
+            <div class="reg" data-component="cir">CIR</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="memory" data-component="memory">
+        <i class="fas fa-memory"></i>
+        Memory Unit
+      </div>
+      
+      <svg class="data-flow" viewBox="0 0 1000 650" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+            <path d="M0,0 L0,6 L9,3 z" fill="#3498db"/>
+          </marker>
+        </defs>
+        <!-- Input -> CPU -->
+        <path class="flow-path" d="M160,325 C250,325 350,300 400,210" />
+        <!-- CPU -> Output -->
+        <path class="flow-path" d="M600,210 C650,300 750,325 840,325" />
+        <!-- CPU -> Memory -->
+        <path class="flow-path" d="M500,420 L500,500" />
+        <!-- Memory -> CPU -->
+        <path class="flow-path" d="M500,500 L500,420" />
+        <!-- Control Unit -> ALU -->
+        <path class="flow-path" d="M450,150 L450,190" />
+        <!-- ALU -> Registers -->
+        <path class="flow-path" d="M450,240 L450,280" />
+      </svg>
+      
+      <div class="info-panel" id="infoPanel">
+        <span class="close" id="closeInfo">&times;</span>
+        <h3 id="infoTitle">Component Info</h3>
+        <div id="infoContent">
+          <p>Click on any component to see detailed information about it.</p>
+        </div>
+      </div>
+      
+      <div class="tooltip" id="tooltip"></div>
+    </div>
+  </div>
+  
+  <footer>
+    <p>Premium CPU Architecture Diagram &copy; 2023 | Created for educational purposes</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const infoPanel = document.getElementById('infoPanel');
+      const infoTitle = document.getElementById('infoTitle');
+      const infoContent = document.getElementById('infoContent');
+      const closeInfo = document.getElementById('closeInfo');
+      const tooltip = document.getElementById('tooltip');
+      const animateBtn = document.getElementById('animateBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const infoBtn = document.getElementById('infoBtn');
+      const flowPaths = document.querySelectorAll('.flow-path');
+      
+      let animationInterval;
+      let isAnimating = false;
+      
+      // Component information
+      const componentInfo = {
+        input: {
+          title: "Input Device",
+          content: "<p>Input devices allow users to enter data and commands into the computer system. Common examples include keyboards, mice, scanners, and microphones.</p><p>Input devices convert human-understandable information into digital data that the computer can process.</p>"
+        },
+        output: {
+          title: "Output Device",
+          content: "<p>Output devices display or present the results of computer processing. Examples include monitors, printers, speakers, and projectors.</p><p>These devices convert digital information from the computer into human-perceivable forms like text, images, or sound.</p>"
+        },
+        control: {
+          title: "Control Unit",
+          content: "<p>The Control Unit (CU) is a component of the CPU that directs the operation of the processor. It tells the computer's memory, arithmetic/logic unit, and input/output devices how to respond to program instructions.</p><p>The CU decodes instructions and regulates the timing of processor operations using control signals.</p>"
+        },
+        alu: {
+          title: "Arithmetic Logic Unit",
+          content: "<p>The Arithmetic Logic Unit (ALU) performs mathematical calculations (addition, subtraction, etc.) and logical operations (comparisons, AND, OR, etc.)</p><p>It takes inputs from registers, processes them, and stores the result in an accumulator register. The ALU is the fundamental building block of the CPU.</p>"
+        },
+        memory: {
+          title: "Memory Unit",
+          content: "<p>Computer memory stores data and instructions for processing. It comes in several forms:</p><ul><li><strong>RAM</strong> (Random Access Memory): Volatile memory for temporary data storage</li><li><strong>ROM</strong> (Read-Only Memory): Non-volatile memory containing firmware</li><li><strong>Cache</strong>: High-speed memory for frequently accessed data</li></ul>"
+        },
+        pc: {
+          title: "Program Counter (PC)",
+          content: "<p>The Program Counter is a register that stores the memory address of the next instruction to be executed. After each instruction is fetched, the PC is incremented to point to the next instruction.</p><p>During jump or branch instructions, the PC is loaded with a new address rather than simply incremented.</p>"
+        },
+        ac: {
+          title: "Accumulator (AC)",
+          content: "<p>The Accumulator is a special register that stores the results of arithmetic and logic operations. It serves as a temporary storage location for data being processed by the ALU.</p><p>In many CPU architectures, the accumulator is implicitly used by many instructions.</p>"
+        },
+        mar: {
+          title: "Memory Address Register (MAR)",
+          content: "<p>The Memory Address Register holds the memory address of data that needs to be accessed (read from or written to).</p><p>When the CPU wants to read from or write to memory, it places the address into the MAR, which is then connected to the address bus.</p>"
+        },
+        mdr: {
+          title: "Memory Data Register (MDR)",
+          content: "<p>The Memory Data Register (also called Memory Buffer Register) temporarily holds data being transferred to or from memory.</p><p>When reading from memory, data fetched from memory is placed in the MDR. When writing to memory, data to be stored is placed in the MDR before being written to the address specified in the MAR.</p>"
+        },
+        cir: {
+          title: "Current Instruction Register (CIR)",
+          content: "<p>The Current Instruction Register holds the instruction currently being executed. After an instruction is fetched from memory, it is placed in the CIR.</p><p>The control unit then decodes the instruction in the CIR and generates the appropriate control signals to execute it.</p>"
+        }
+      };
+      
+      // Show info panel when a component is clicked
+      document.querySelectorAll('.box, .control, .alu, .reg, .memory').forEach(component => {
+        component.addEventListener('click', function() {
+          const componentType = this.dataset.component;
+          if (componentInfo[componentType]) {
+            infoTitle.textContent = componentInfo[componentType].title;
+            infoContent.innerHTML = componentInfo[componentType].content;
+            infoPanel.classList.add('visible');
+          }
+        });
+      });
+      
+      // Close info panel
+      closeInfo.addEventListener('click', function() {
+        infoPanel.classList.remove('visible');
+      });
+      
+      // Show tooltip on hover
+      document.querySelectorAll('[data-component]').forEach(component => {
+        component.addEventListener('mousemove', function(e) {
+          const componentType = this.dataset.component;
+          if (componentInfo[componentType]) {
+            tooltip.textContent = `Click for info about ${componentInfo[componentType].title}`;
+            tooltip.style.opacity = '1';
+            tooltip.style.left = (e.pageX + 10) + 'px';
+            tooltip.style.top = (e.pageY + 10) + 'px';
+          }
+        });
+        
+        component.addEventListener('mouseleave', function() {
+          tooltip.style.opacity = '0';
+        });
+      });
+      
+      // Toggle info panel with button
+      infoBtn.addEventListener('click', function() {
+        infoPanel.classList.toggle('visible');
+        if (infoPanel.classList.contains('visible')) {
+          infoTitle.textContent = "CPU Architecture Diagram";
+          infoContent.innerHTML = "<p>This interactive diagram shows the main components of a CPU and how they interact with each other and with memory and I/O devices.</p><p>Click on any component to learn more about its function in the computer system.</p>";
+        }
+      });
+      
+      // Animate data flow
+      animateBtn.addEventListener('click', function() {
+        if (isAnimating) return;
+        
+        isAnimating = true;
+        flowPaths.forEach(path => {
+          path.style.animation = 'flowAnimation 2s linear infinite';
+        });
+        
+        // Simulate data moving through the system
+        const components = [
+          document.querySelector('.input'),
+          document.querySelector('.control'),
+          document.querySelector('.alu'),
+          document.querySelector('.registers'),
+          document.querySelector('.memory'),
+          document.querySelector('.output')
+        ];
+        
+        let current = 0;
+        
+        components.forEach(comp => comp.style.boxShadow = 'none');
+        components[0].style.boxShadow = '0 0 20px rgba(46, 204, 113, 0.8)';
+        
+        animationInterval = setInterval(() => {
+          components[current].style.boxShadow = 'none';
+          current = (current + 1) % components.length;
+          components[current].style.boxShadow = '0 0 20px rgba(46, 204, 113, 0.8)';
+        }, 1000);
+      });
+      
+      // Reset animation
+      resetBtn.addEventListener('click', function() {
+        isAnimating = false;
+        clearInterval(animationInterval);
+        flowPaths.forEach(path => {
+          path.style.animation = 'none';
+        });
+        
+        document.querySelectorAll('.box, .control, .alu, .registers, .memory').forEach(comp => {
+          comp.style.boxShadow = '';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

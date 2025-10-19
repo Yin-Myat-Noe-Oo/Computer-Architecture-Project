@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-bit CPU Translator Simulator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background-color: #242630;
+            color: #e5e7eb;
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        header {
+            text-align: center;
+            padding: 16px 0;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            color: #9ca3af;
+        }
+        
+        .panel-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        @media (min-width: 992px) {
+            .panel-container {
+                flex-direction: row;
+            }
+        }
+        
+        .card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 100%;
+        }
+        
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card-title i {
+            font-size: 1.1rem;
+            color: #3b82f6;
+        }
+        
+        .translator-box {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        label {
+            color: #9ca3af;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            font-size: 0.9rem;
+            resize: vertical;
+            color: #e5e7eb;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .language-selectors {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background: #1f2937;
+            color: #e5e7eb;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-blue {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .btn-blue:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.5);
+        }
+        
+        .btn-white {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        
+        .btn-white:hover {
+            background-color: #d1d5db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(229, 231, 235, 0.5);
+        }
+        
+        .cpu-content {
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .cpu-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .cpu-content::-webkit-scrollbar-track {
+            background: rgba(55, 65, 81, 0.3);
+            border-radius: 4px;
+        }
+        
+        .cpu-content::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        
+        .cpu-content::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        
+        .cpu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .chip {
+            background-color: #2d2d2d;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            color: #d1d5db;
+            transition: transform 0.3s;
+        }
+        
+        .chip:hover {
+            transform: scale(1.03);
+        }
+        
+        .component-title {
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            color: #9ca3af;
+        }
+        
+        .component-value {
+            font-size: 1rem;
+            font-weight: bold;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e5e7eb;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .bus-container {
+            margin: 16px 0;
+            position: relative;
+            height: 50px;
+        }
+        
+        .bus-line {
+            height: 3px;
+            background: #3b82f6;
+            border-radius: 2px;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+        }
+        
+        .bus-data {
+            position: absolute;
+            width: 40px;
+            height: 24px;
+            background: #1f2937;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+            transition: left 1s ease-in-out;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .control-signals {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .signal {
+            padding: 10px;
+            background: #2d2d2d;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            border: 1px solid #4a4a4a;
+            color: #9ca3af;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .signal.active {
+            background: #3b82f6;
+            color: white;
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+        
+        .memory-container {
+            margin-top: 20px;
+        }
+        
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+        }
+        
+        .memory-cell {
+            background: #1f2937;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #374151;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .memory-cell.input-cell {
+            background: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        .memory-cell.output-cell {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+        
+        .memory-cell.active {
+            transform: scale(1.08);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.7);
+            z-index: 10;
+        }
+        
+        .memory-cell.read-active {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .memory-cell.write-active {
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
+            transform: scale(1.05);
+        }
+        
+        .memory-address {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            color: #9ca3af;
+        }
+        
+        .memory-content {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 4px;
+            color: #e5e7eb;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .memory-cell.input-cell .memory-content,
+        .memory-cell.output-cell .memory-content {
+            color: white;
+        }
+        
+        .progress-container {
+            margin-top: 30px;
+            background: #1a1a1a;
+            border-radius: 12px;
+            height: 16px;
+            overflow: hidden;
+            border: 1px solid #333333;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(to right, #6d28d9, #9333ea);
+            border-radius: 12px;
+            width: 0%;
+            transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6);
+        }
+
+        .info-box {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border: 1px solid #333333;
+            font-size: 1rem;
+            color: #a3a3a3;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .highlight {
+            color: #c084fc;
+            font-weight: bold;
+        }
+        
+        .simulation-status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #1f2937;
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+        
+        @media (max-width: 992px) {
+            .panel-container {
+                flex-direction: column;
+            }
+            
+            .cpu-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .control-signals {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .cpu-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-signals {
+                grid-template-columns: 1fr;
+            }
+            
+            .language-selectors {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .memory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-microchip"></i> 8-bit CPU Translator Simulator</h1>
+            <p class="subtitle">Visualizing how a CPU processes translation operations</p>
+        </header>
+        
+        <div class="panel-container">
+            <!-- Left Panel: Language Translator -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-language"></i> Language Translator</h2>
+                <div class="translator-box">
+                    <div class="language-selectors">
+                        <div>
+                            <label>Source Language:</label>
+                            <select id="srcLang">
+                                <option value="en" selected>English</option>
+                                <option value="my">Burmese</option>
+                                <option value="fr">French</option>
+                                <option value="es">Spanish</option>
+                                <option value="de">German</option>
+                                <option value="zh-CN">Chinese</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Target Language:</label>
+                            <select id="tgtLang">
+                                <option value="my" selected>Burmese</option>
+                                <option value="en">English</option>
+                                <option value="fr">French</option>
+                                <option value="es">Spanish</option>
+                                <option value="de">German</option>
+                                <option value="zh-CN">Chinese</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <label>Enter text:</label>
+                    <textarea id="srcText">Hello, how are you?</textarea>
+                    
+                    <div class="button-group">
+                        <button id="translateBtn" class="btn-blue">
+                            <i class="fas fa-exchange-alt"></i> Translate
+                        </button>
+                        <button id="resetBtn" class="btn-white">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                    
+                    <label>Translation:</label>
+                    <textarea id="tgtText" readonly></textarea>
+                    
+                    <div class="simulation-status" id="simStatus">
+                        Ready to translate. Click the Translate button to start.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Panel: CPU Architecture -->
+            <div class="card">
+                <h2 class="card-title"><i class="fas fa-project-diagram"></i> CPU Architecture</h2>
+                <div class="cpu-content">
+                    <div class="cpu-grid">
+                        <div class="chip">
+                            <div class="component-title">AC (Accumulator)</div>
+                            <div class="component-value" id="ac-value">0x00</div>
+                        </div>
+                        <div class="chip">
+                            <div class="component-title">PC (Program Counter)</div>
+                            <div class="component-value" id="pc-value">0x00</div>
+                        </div>
+                        <div class="chip">
+                            <div class="component-title">IR (Instruction Register)</div>
+                            <div class="component-value" id="ir-value">0x00</div>
+                        </div>
+                        <div class="chip">
+                            <div class="component-title">MAR (Memory Address)</div>
+                            <div class="component-value" id="mar-value">0x00</div>
+                        </div>
+                        <div class="chip">
+                            <div class="component-title">MDR (Memory Data)</div>
+                            <div class="component-value" id="mdr-value">0x00</div>
+                        </div>
+                        <div class="chip">
+                            <div class="component-title">CU (Control Unit)</div>
+                            <div class="component-value" id="cu-value">IDLE</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bus-container">
+                        <div class="bus-line"></div>
+                        <div class="bus-data" id="bus-data">0x00</div>
+                    </div>
+                    
+                    <div class="control-signals">
+                        <div class="signal" id="signal-read">READ</div>
+                        <div class="signal" id="signal-write">WRITE</div>
+                        <div class="signal" id="signal-fetch">FETCH</div>
+                        <div class="signal" id="signal-execute">EXECUTE</div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar">0%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Memory Grid Section -->
+        <div class="card" style="margin-top: 16px;">
+            <h2 class="card-title"><i class="fas fa-memory"></i> Memory Contents</h2>
+            <div class="memory-grid" id="memory-grid">
+                <!-- Memory cells will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize memory grid
+        const memoryGrid = document.getElementById('memory-grid');
+        const memorySize = 256;
+        let isSimulating = false;
+        
+        // Define instruction set
+        const INSTRUCTIONS = {
+            LOAD: 0x01,    // Load from memory to AC
+            STORE: 0x02,   // Store from AC to memory
+            TRANSLATE: 0x03, // "Translate" operation
+            HALT: 0xFF     // Halt execution
+        };
+        
+        // Memory layout
+        const INPUT_START = 0x10;
+        const INPUT_END = 0x7F;
+        const OUTPUT_START = 0x90;
+        const OUTPUT_END = 0x10F;
+        
+        for (let i = 0; i < memorySize; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'memory-cell';
+            
+            // Apply input/output colors
+            if (i >= INPUT_START && i <= INPUT_END) {
+                cell.classList.add('input-cell');
+            } else if (i >= OUTPUT_START && i <= OUTPUT_END) {
+                cell.classList.add('output-cell');
+            }
+            
+            cell.innerHTML = `
+                <div class="memory-address">0x${i.toString(16).padStart(2, '0').toUpperCase()}</div>
+                <div class="memory-content" id="mem-${i}">0x00</div>
+            `;
+            memoryGrid.appendChild(cell);
+        }
+        
+        // CPU component elements
+        const acValue = document.getElementById('ac-value');
+        const pcValue = document.getElementById('pc-value');
+        const irValue = document.getElementById('ir-value');
+        const marValue = document.getElementById('mar-value');
+        const mdrValue = document.getElementById('mdr-value');
+        const cuValue = document.getElementById('cu-value');
+        const busData = document.getElementById('bus-data');
+        const progressBar = document.getElementById('progress-bar');
+        const simStatus = document.getElementById('simStatus');
+        
+        // Control signal elements
+        const signalRead = document.getElementById('signal-read');
+        const signalWrite = document.getElementById('signal-write');
+        const signalFetch = document.getElementById('signal-fetch');
+        const signalExecute = document.getElementById('signal-execute');
+        
+        // Translator elements
+        const srcText = document.getElementById('srcText');
+        const tgtText = document.getElementById('tgtText');
+        const srcLang = document.getElementById('srcLang');
+        const tgtLang = document.getElementById('tgtLang');
+        const translateBtn = document.getElementById('translateBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        // Helper function to update bus animation
+        function updateBus(value, from, to) {
+            busData.textContent = value;
+            
+            // Calculate positions based on component layout
+            const fromPos = getComponentPosition(from);
+            const toPos = getComponentPosition(to);
+            
+            // Set initial position
+            busData.style.left = fromPos + 'px';
+            
+            // Animate to destination
+            setTimeout(() => {
+                busData.style.left = toPos + 'px';
+            }, 10);
+        }
+        
+        // Helper function to estimate component positions for bus animation
+        function getComponentPosition(component) {
+            // These are estimates based on the layout
+            const positions = {
+                'PC': 50,
+                'MAR': 150,
+                'MEMORY': 250,
+                'MDR': 350,
+                'IR': 450,
+                'CU': 550,
+                'AC': 650
+            };
+            
+            return positions[component] || 0;
+        }
+        
+        // Helper function to activate/deactivate control signals
+        function setSignalActive(signal, isActive) {
+            if (isActive) {
+                signal.classList.add('active');
+            } else {
+                signal.classList.remove('active');
+            }
+        }
+        
+        // Helper function to highlight memory cells
+        function highlightMemoryCell(address, isActive, operation = '') {
+            const cell = document.getElementById(`mem-${address}`);
+            if (cell) {
+                // Remove any previous operation classes
+                cell.parentElement.classList.remove('read-active', 'write-active', 'active');
+                
+                if (isActive) {
+                    if (operation === 'read') {
+                        cell.parentElement.classList.add('read-active');
+                    } else if (operation === 'write') {
+                        cell.parentElement.classList.add('write-active');
+                    } else {
+                        cell.parentElement.classList.add('active');
+                    }
+                }
+            }
+        }
+        
+        // Reset the simulation to initial state
+        function resetSimulation() {
+            isSimulating = false;
+            
+            // Reset all components
+            acValue.textContent = '0x00';
+            pcValue.textContent = '0x00';
+            irValue.textContent = '0x00';
+            marValue.textContent = '0x00';
+            mdrValue.textContent = '0x00';
+            cuValue.textContent = 'IDLE';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            tgtText.value = '';
+            simStatus.textContent = 'Ready to translate. Click the Translate button to start.';
+            simStatus.style.background = '#1f2937';
+            simStatus.style.color = '#9ca3af';
+            
+            // Reset control signals
+            setSignalActive(signalRead, false);
+            setSignalActive(signalWrite, false);
+            setSignalActive(signalFetch, false);
+            setSignalActive(signalExecute, false);
+            
+            // Clear memory and remove highlights
+            for (let i = 0; i < memorySize; i++) {
+                document.getElementById(`mem-${i}`).textContent = '0x00';
+                highlightMemoryCell(i, false);
+            }
+            
+            // Reset bus position
+            busData.style.left = '0px';
+        }
+        
+        // Simulate CPU activity with proper fetch-decode-execute cycle
+        async function simulateCPUActivity(inputText, targetLanguage) {
+            if (isSimulating) return;
+            isSimulating = true;
+            
+            simStatus.textContent = 'Simulation in progress...';
+            simStatus.style.background = '#3b82f6';
+            simStatus.style.color = 'white';
+            
+            // Reset all components
+            acValue.textContent = '0x00';
+            pcValue.textContent = '0x00';
+            irValue.textContent = '0x00';
+            marValue.textContent = '0x00';
+            mdrValue.textContent = '0x00';
+            cuValue.textContent = 'FETCH';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+            
+            // Reset control signals
+            setSignalActive(signalRead, false);
+            setSignalActive(signalWrite, false);
+            setSignalActive(signalFetch, false);
+            setSignalActive(signalExecute, false);
+            
+            // Clear memory and remove highlights
+            for (let i = 0; i < memorySize; i++) {
+                document.getElementById(`mem-${i}`).textContent = '0x00';
+                highlightMemoryCell(i, false);
+            }
+            
+            // Load input text into memory (as ASCII codes)
+            for (let i = 0; i < Math.min(inputText.length, 112); i++) {
+                const address = INPUT_START + i;
+                const charCode = inputText.charCodeAt(i);
+                document.getElementById(`mem-${address}`).textContent = `0x${charCode.toString(16).padStart(2, '0').toUpperCase()}`;
+            }
+            
+            // Generate program to process all characters
+            const program = [];
+            for (let i = 0; i < Math.min(inputText.length, 112); i++) {
+                program.push(INSTRUCTIONS.LOAD);
+                program.push(INPUT_START + i);  // Source address
+                program.push(INSTRUCTIONS.TRANSLATE);
+                program.push(INSTRUCTIONS.STORE);
+                program.push(OUTPUT_START + i);  // Destination address
+            }
+            program.push(INSTRUCTIONS.HALT);
+            
+            for (let i = 0; i < program.length; i++) {
+                document.getElementById(`mem-${i}`).textContent = `0x${program[i].toString(16).padStart(2, '0').toUpperCase()}`;
+            }
+            
+            // Simulate the CPU fetch-decode-execute cycle
+            let pc = 0; // Program counter starts at 0
+            let translatedChars = Array(112).fill('');
+            
+            while (true) {
+                if (!isSimulating) break; // Stop if simulation was reset
+                
+                // Update progress
+                const progress = Math.min(100, (pc / program.length) * 100);
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${Math.round(progress)}%`;
+                
+                // FETCH STAGE
+                cuValue.textContent = 'FETCH';
+                setSignalActive(signalFetch, true);
+                
+                // MAR <- PC
+                marValue.textContent = `0x${pc.toString(16).padStart(2, '0').toUpperCase()}`;
+                updateBus(marValue.textContent, 'PC', 'MAR');
+                highlightMemoryCell(pc, true);
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // MDR <- Memory[MAR], PC <- PC + 1
+                setSignalActive(signalRead, true);
+                const instruction = parseInt(document.getElementById(`mem-${pc}`).textContent.substring(2), 16);
+                mdrValue.textContent = `0x${instruction.toString(16).padStart(2, '0').toUpperCase()}`;
+                updateBus(mdrValue.textContent, 'MEMORY', 'MDR');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                setSignalActive(signalRead, false);
+                highlightMemoryCell(pc, false);
+                pc++;
+                pcValue.textContent = `0x${pc.toString(16).padStart(2, '0').toUpperCase()}`;
+                
+                // IR <- MDR
+                irValue.textContent = mdrValue.textContent;
+                updateBus(mdrValue.textContent, 'MDR', 'IR');
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                setSignalActive(signalFetch, false);
+                
+                // DECODE STAGE
+                cuValue.textContent = 'DECODE';
+                await new Promise(resolve => setTimeout(resolve, 200));
+                
+                // EXECUTE STAGE
+                cuValue.textContent = 'EXECUTE';
+                setSignalActive(signalExecute, true);
+                
+                const instructionCode = parseInt(irValue.textContent.substring(2), 16);
+                
+                switch (instructionCode) {
+                    case INSTRUCTIONS.LOAD:
+                        // Get the address operand
+                        marValue.textContent = `0x${pc.toString(16).padStart(2, '0').toUpperCase()}`;
+                        updateBus(marValue.textContent, 'PC', 'MAR');
+                        highlightMemoryCell(pc, true);
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalRead, true);
+                        const address = parseInt(document.getElementById(`mem-${pc}`).textContent.substring(2), 16);
+                        mdrValue.textContent = `0x${address.toString(16).padStart(2, '0').toUpperCase()}`;
+                        updateBus(mdrValue.textContent, 'MEMORY', 'MDR');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalRead, false);
+                        highlightMemoryCell(pc, false);
+                        pc++;
+                        pcValue.textContent = `0x${pc.toString(16).padStart(2, '0').toUpperCase()}`;
+                        
+                        // Now load from the address in MDR
+                        marValue.textContent = mdrValue.textContent;
+                        updateBus(mdrValue.textContent, 'MDR', 'MAR');
+                        highlightMemoryCell(address, true, 'read');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalRead, true);
+                        const data = parseInt(document.getElementById(`mem-${address}`).textContent.substring(2), 16);
+                        mdrValue.textContent = `0x${data.toString(16).padStart(2, '0').toUpperCase()}`;
+                        updateBus(mdrValue.textContent, 'MEMORY', 'MDR');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalRead, false);
+                        highlightMemoryCell(address, false);
+                        acValue.textContent = mdrValue.textContent;
+                        updateBus(mdrValue.textContent, 'MDR', 'AC');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        break;
+                        
+                    case INSTRUCTIONS.STORE:
+                        // Get the address operand
+                        marValue.textContent = `0x${pc.toString(16).padStart(2, '0').toUpperCase()}`;
+                        updateBus(marValue.textContent, 'PC', 'MAR');
+                        highlightMemoryCell(pc, true);
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalRead, true);
+                        const storeAddress = parseInt(document.getElementById(`mem-${pc}`).textContent.substring(2), 16);
+                        mdrValue.textContent = `0x${storeAddress.toString(16).padStart(2, '0').toUpperCase()}`;
+                        updateBus(mdrValue.textContent, 'MEMORY', 'MDR');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalRead, false);
+                        highlightMemoryCell(pc, false);
+                        pc++;
+                        pcValue.textContent = `0x${pc.toString(16).padStart(2, '0').toUpperCase()}`;
+                        
+                        // Now store AC to the address in MDR
+                        marValue.textContent = mdrValue.textContent;
+                        updateBus(mdrValue.textContent, 'MDR', 'MAR');
+                        highlightMemoryCell(storeAddress, true, 'write');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        mdrValue.textContent = acValue.textContent;
+                        updateBus(acValue.textContent, 'AC', 'MDR');
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalWrite, true);
+                        document.getElementById(`mem-${storeAddress}`).textContent = mdrValue.textContent;
+                        updateBus(mdrValue.textContent, 'MDR', 'MEMORY');
+                        
+                        // Update translation text field with the stored character
+                        const charCode = parseInt(mdrValue.textContent.substring(2), 16);
+                        const outputIndex = storeAddress - OUTPUT_START;
+                        if (outputIndex >= 0 && outputIndex < 112) {
+                            translatedChars[outputIndex] = String.fromCharCode(charCode);
+                            tgtText.value = translatedChars.join('');
+                        }
+                        
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        
+                        setSignalActive(signalWrite, false);
+                        highlightMemoryCell(storeAddress, false);
+                        break;
+                        
+                    case INSTRUCTIONS.TRANSLATE:
+                        // For simulation purposes, we'll just increment the character code
+                        // In a real implementation, this would be replaced with actual translation logic
+                        const currentValue = parseInt(acValue.textContent.substring(2), 16);
+                        acValue.textContent = `0x${(currentValue + 1).toString(16).padStart(2, '0').toUpperCase()}`;
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                        break;
+                        
+                    case INSTRUCTIONS.HALT:
+                        setSignalActive(signalExecute, false);
+                        cuValue.textContent = 'HALT';
+                        progressBar.style.width = '100%';
+                        progressBar.textContent = '100%';
+                        
+                        simStatus.textContent = 'Translation complete!';
+                        simStatus.style.background = '#10b981';
+                        
+                        // Use Google Translate API for actual translation
+                        const sl = srcLang.value;
+                        const tl = tgtLang.value;
+                        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sl}&tl=${tl}&dt=t&q=${encodeURIComponent(inputText)}`;
+
+                        try {
+                            const res = await fetch(url);
+                            const data = await res.json();
+                            tgtText.value = data[0].map(item => item[0]).join("");
+                        } catch (err) {
+                            console.error("Translation API error:", err);
+                            // If the API fails, use the simulated translation
+                            tgtText.value = translatedChars.join('');
+                        }
+                        
+                        isSimulating = false;
+                        return;
+                }
+                
+                setSignalActive(signalExecute, false);
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+        
+        // Event listener for the translate button
+        translateBtn.addEventListener('click', async () => {
+            const text = srcText.value.trim();
+            if (!text) return alert("Please enter text to translate.");
+
+            // Show CPU simulation
+            simulateCPUActivity(text, tgtLang.value);
+        });
+        
+        // Event listener for the reset button
+        resetBtn.addEventListener('click', resetSimulation);
+        
+        // Initialize the simulation
+        resetSimulation();
+    </script>
+</body>
+</html>

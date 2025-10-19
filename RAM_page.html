@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Interactive RAM Diagram</title>
+  <style>
+    :root {
+      --primary: #1a237e;      /* Deep navy */
+      --secondary: #3949ab;    /* Blue */
+      --accent: #90caf9;       /* Light blue accent */
+      --dark: #0d1333;         /* Deep navy for text/buttons */
+      --light: #fff7e1;        /* Buttercream background */
+      --shadow: 0 6px 18px rgba(0, 0, 0, 0.13);
+      --glow: 0 0 18px rgba(26, 35, 126, 0.25);
+      --cell-dusty: #b0c4de;   /* Dusty blue for memory cell */
+    }
+
+    body {
+      margin: 0;
+      background: #bdc4d4;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--dark);
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.3rem;
+      color: var(--dark);
+      margin-bottom: 12px;
+      font-weight: 700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.07);
+    }
+    p {
+      font-size: 1.1rem;
+      color: #222b44;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn {
+      padding: 10px 20px;
+      background: var(--dark);
+      color: var(--light);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow);
+    }
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 20px rgba(26, 35, 126, 0.18);
+      background: var(--secondary);
+      color: #fff;
+    }
+
+    .diagram {
+      position: relative;
+      width: 950px;
+      height: 550px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .decoder {
+      position: absolute;
+      left: 80px; top: 180px;
+      width: 120px; height: 180px;
+      background: linear-gradient(to bottom right, var(--secondary), var(--primary));
+      color: #fff;
+      font-weight: bold;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .decoder:hover {
+      transform: scale(1.05);
+      box-shadow: var(--glow);
+    }
+
+    .memory-grid {
+      position: absolute;
+      left: 280px; top: 80px;
+      display: grid;
+      grid-template-columns: repeat(8, 40px);
+      grid-gap: 6px;
+    }
+    .cell {
+      width: 40px; height: 40px;
+      background: var(--cell-dusty);
+      border-radius: 6px;
+      transition: 0.3s;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.13);
+      cursor: pointer;
+    }
+    .cell:hover {
+      transform: scale(1.1);
+      box-shadow: var(--glow);
+    }
+
+    .info-panel {
+      position: absolute;
+      right: 20px;
+      width: 250px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 15px;
+      display: none;
+    }
+    .info-panel h3 {
+      margin-bottom: 8px;
+      color: var(--primary);
+    }
+    .info-panel input {
+      width: 100%;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-top: 6px;
+    }
+
+    .highlight {
+      box-shadow: 0 0 12px 4px rgba(26, 35, 126, 0.22);
+    }
+
+    .arrow {
+      position: absolute;
+      height: 4px;
+      background: var(--secondary);
+    }
+    .arrow::after {
+      content: "";
+      position: absolute;
+      right: -10px; top: -6px;
+      border-left: 10px solid var(--secondary);
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+    }
+    .address-bus { width: 100px; top: 250px; left: -20px; }
+    .data-bus { width: 200px; top: 250px; left: 600px; }
+    .control-bus {
+      width: 80px; height: 4px;
+      transform: rotate(90deg);
+      top: 100px; left: 120px;
+    }
+
+    .output-box {
+      position: absolute;
+      right: 40px; top: 220px;
+      width: 100px; height: 60px;
+      background: linear-gradient(to bottom right, var(--primary), var(--secondary));
+      color: #fff;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    @keyframes flow {
+      0% { background: var(--cell-dusty); }
+      50% { background: var(--accent); }
+      100% { background: var(--cell-dusty); }
+    }
+    .flowing {
+      animation: flow 1s infinite;
+    }
+  </style>
+</head>
+<body>
+  <h1>Interactive RAM Diagram</h1>
+  <p>Visualize how the Address Decoder selects a memory cell and data travels through the bus.</p>
+  
+  <div class="controls">
+    <button class="btn" id="animateBtn">Animate Data Flow</button>
+    <button class="btn" id="resetBtn">Reset</button>
+    <button class="btn" id="infoBtn">Show Info</button>
+  </div>
+  
+  <div class="diagram">
+    <!-- Address Decoder -->
+    <div class="decoder" data-component="decoder">Decoder</div>
+    
+    <!-- Memory Grid -->
+    <div class="memory-grid" id="grid"></div>
+    
+    <!-- Buses -->
+    <div class="arrow address-bus"></div>
+    <div class="arrow data-bus"></div>
+    <div class="arrow control-bus"></div>
+    
+    <!-- Output -->
+    <div class="output-box">Data Out</div>
+    
+    <!-- Info Panel -->
+    <div class="info-panel" id="infoPanel" style="top:20px;">
+      <h3 id="infoTitle">Component Info</h3>
+      <p id="infoContent">Click a component to learn about it.</p>
+    </div>
+
+    <!-- Cell Info Panel -->
+    <div class="info-panel" id="cellPanel" style="top: 300px;">
+      <h3>Cell Info</h3>
+      <p id="cellAddress">Address: -</p>
+      <p id="cellData">Data: -</p>
+      <input type="text" id="cellInput" maxlength="8" placeholder="8-bit binary">
+      <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" onclick="readCellData()">Read</button>
+        <button class="btn" onclick="writeCellData()">Write</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const grid = document.getElementById("grid");
+    const infoPanel = document.getElementById("infoPanel");
+    const infoTitle = document.getElementById("infoTitle");
+    const infoContent = document.getElementById("infoContent");
+    const decoder = document.querySelector(".decoder");
+    const outputBox = document.querySelector(".output-box");
+    const cells = [];
+
+    // Memory array
+    let memory = Array(64).fill("00000000");
+    let activeCellIndex = null;
+
+    // Generate 64 cells
+    for (let i=0; i<64; i++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      grid.appendChild(cell);
+      cells.push(cell);
+
+      // Click event for each cell
+      cell.addEventListener("click", () => {
+        activeCellIndex = i;
+        document.getElementById("cellPanel").style.display = "block";
+        document.getElementById("cellAddress").textContent = "Address: " + i.toString(2).padStart(6,"0");
+        document.getElementById("cellData").textContent = "Data: " + memory[i];
+        document.getElementById("cellInput").value = memory[i];
+      });
+    }
+
+    // Component info
+    const componentInfo = {
+      decoder: {
+        title: "Address Decoder",
+        content: "Selects which memory row is activated based on the input address."
+      },
+      cell: {
+        title: "Memory Cell",
+        content: "Each cell stores 1 byte (8 bits)."
+      }
+    };
+    document.querySelectorAll("[data-component]").forEach(comp => {
+      comp.addEventListener("click", () => {
+        const type = comp.dataset.component;
+        infoTitle.textContent = componentInfo[type].title;
+        infoContent.textContent = componentInfo[type].content;
+        infoPanel.style.display = "block";
+      });
+    });
+
+    // Animate flow
+    document.getElementById("animateBtn").addEventListener("click", () => {
+      document.querySelector(".address-bus").classList.add("highlight");
+      decoder.classList.add("highlight");
+      setTimeout(() => {
+        let row = 3;
+        for (let i=row*8; i<(row+1)*8; i++) {
+          cells[i].classList.add("flowing");
+        }
+        setTimeout(() => {
+          document.querySelector(".data-bus").classList.add("highlight");
+          outputBox.classList.add("highlight");
+        }, 1200);
+      }, 800);
+    });
+
+    // Reset
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      decoder.classList.remove("highlight");
+      outputBox.classList.remove("highlight");
+      document.querySelector(".address-bus").classList.remove("highlight");
+      document.querySelector(".data-bus").classList.remove("highlight");
+      cells.forEach(c => c.classList.remove("flowing"));
+    });
+
+    // Toggle info
+    document.getElementById("infoBtn").addEventListener("click", () => {
+      infoPanel.style.display = infoPanel.style.display === "block" ? "none" : "block";
+    });
+
+    // Read & Write functions
+    function writeCellData() {
+      if (activeCellIndex === null) { alert("Select a cell first!"); return; }
+      const val = document.getElementById("cellInput").value.trim();
+      if (!/^[01]{8}$/.test(val)) {
+        alert("Please enter a valid 8-bit binary (e.g. 01010101).");
+        return;
+      }
+      memory[activeCellIndex] = val;
+      document.getElementById("cellData").textContent = "Data: " + val;
+    }
+    function readCellData() {
+      if (activeCellIndex === null) { alert("Select a cell first!"); return; }
+      document.getElementById("cellData").textContent = "Data: " + memory[activeCellIndex];
+      document.getElementById("cellInput").value = memory[activeCellIndex];
+    }
+  </script>
+</body>
+</html>
